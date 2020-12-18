@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import re
+#import re
 import plotly_express as px
 
 # spacy for lemmatization
@@ -71,18 +71,18 @@ def all_stopwords(filename, adds):
 def clean_basic(file_data):
     text = file_data
     # replace reference number with empty space, if any..
-    text = re.sub(r'\[[0-9]*\]',' ',text) 
+    #text = re.sub(r'\[[0-9]*\]',' ',text) 
     # replace one or more spaces with single space
-    text = re.sub(r'\s+',' ',text)
+    #text = re.sub(r'\s+',' ',text)
     return text
 
 def clean_final(text, stop_words):
     # convert all uppercase characters into lowercase characters
     clean_text = text.lower()
     # replace characters other than [a-zA-Z0-9], digits & one or more spaces with single space
-    regex_patterns = [r'\W',r'\d',r'\s+']
-    for regex in regex_patterns:
-        clean_text = re.sub(regex,' ',clean_text)
+    #regex_patterns = [r'\W',r'\d',r'\s+']
+    #for regex in regex_patterns:
+    #    clean_text = re.sub(regex,' ',clean_text)
     text_tokens = word_tokenize(clean_text)
     tokens_without_sw = [word for word in text_tokens if not word in stop_words]
     clean_text = ' '.join(tokens_without_sw)
