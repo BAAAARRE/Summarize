@@ -5,6 +5,7 @@ import plotly_express as px
 
 # spacy for lemmatization
 import nltk
+nltk.download('punkt')
 from nltk.tokenize import word_tokenize
 import stylecloud
 
