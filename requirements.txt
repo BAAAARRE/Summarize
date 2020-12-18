@@ -1,0 +1,7 @@
+streamlit
+pandas
+heapq
+re
+plotly_express
+nltk
+stylecloud
