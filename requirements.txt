@@ -3,4 +3,3 @@ pandas
 plotly_express
 nltk
 stylecloud
-re
