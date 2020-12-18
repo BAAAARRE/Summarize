@@ -1,6 +1,6 @@
 streamlit
 pandas
-re
 plotly_express
 nltk
 stylecloud
+re
