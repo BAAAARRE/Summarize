@@ -39,7 +39,16 @@ def main():
     st.sidebar.title('Graphique')
     max_plt = st.sidebar.number_input('Nombre de mots dans le graphique', format="%i", value=10)
 
-    stop_words = all_stopwords('stop_words_french.txt', ['falloir','être','faire','produit'])
+    stop_words_fr = all_stopwords('stop_words_french.txt', ['falloir','être','faire','produit'])
+    stop_words_en = all_stopwords('stop_words_english.txt', ['be'])
+
+    st.write('\n')
+    st.header('Langue de votre texte :')
+    stop = st.radio('', ['Français', 'Anglais'])
+    if stop =='Français':
+        stop_words = stop_words_fr
+    else:
+        stop_words = stop_words_en
 
 
     if len(user_input) > 0:
