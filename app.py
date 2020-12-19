@@ -25,30 +25,42 @@ def main():
     
     st.write('\n')
     st.header('Présentation : ')
-    st.write("Vous n'avez pas le temps ou tout simplement la flemme de lire un texte ou un article? Cet algorithme vous permet de retenir l'essentiel d'un texte en un instant! Vous pouvez selectionner sur votre gauche, le nombre de phrases à retenir. Il vous affichera également un nuage de mot associé à votre texte. Ainsi que la fréquence des mots les plus récurrents!")
+    st.write("Vous n'avez pas le temps ou tout simplement la flemme de lire un texte ou un article? Cet algorithme vous permet de retenir l'essentiel d'un texte en un instant! Il vous affichera également un nuage de mot associé à votre texte. Ainsi que la fréquence des mots les plus récurrents! Vous pouvez modifier quelques paramètres, en deployant l'onglet sur votre gauche.")
    
     st.write('\n')
     st.header('Insérez ici votre texte, puis appuyez sur Ctrl + Entrée')
     user_input = st.text_area("", '')
 
+# Sidebar
+    st.sidebar.title('Résumé')
     nb_sent = st.sidebar.number_input('Nombre de phrases pour le résumé', format="%i", value=3)
+    st.sidebar.title('Nuage de mots')
+    max_cld = st.sidebar.number_input('Nombre de mots dans le nuage', format="%i", value=100)
+    st.sidebar.title('Graphique')
+    max_plt = st.sidebar.number_input('Nombre de mots dans le graphique', format="%i", value=10)
 
     stop_words = all_stopwords('stop_words_french.txt', ['falloir','être','faire','produit'])
-    summ, clean, word = final(user_input, stop_words, 30, nb_sent)
+
 
     if len(user_input) > 0:
+        summ, clean, word = final(user_input, stop_words, 30, nb_sent)
+
         st.write('\n')
         st.header('Voici le résumé de votre texte :')
         st.write(summ)
 
         st.write('\n')
         st.header('Voici le nuage de mots de votre texte :')
-        wrd_cld(clean)
+        wrd_cld(clean, max_cld)
         st.image('stylecloud.png')
 
         st.write('\n')
         st.header('Voici les mots les plus fréquents :')
-        plot_top_words(word, 20)
+        plot_top_words(word, max_plt)
+
+        st.write('\n')
+        st.subheader('Prévention :')
+        st.write("Cela ne reste qu'un simple algorithme. Il ne remplacera pas une lecture complète de votre texte, mais permet d'obtenir les idées essentielles.")
 
 
 # Bottom page
@@ -80,7 +92,10 @@ def clean_final(text, stop_words):
     # convert all uppercase characters into lowercase characters
     clean_text = text.lower()
     # replace characters other than [a-zA-Z0-9], digits & one or more spaces with single space
-    clean_text = clean_text.translate(str.maketrans('', '', string.punctuation))
+    punc = string.punctuation + '«»…’'
+    translator = str.maketrans(punc, ' '*len(punc)) #map punctuation to space
+    clean_text = clean_text.translate(translator)
+    clean_text = " ".join(clean_text.split())
     text_tokens = word_tokenize(clean_text)
     tokens_without_sw = [word for word in text_tokens if not word in stop_words]
     clean_text = ' '.join(tokens_without_sw)
@@ -104,7 +119,7 @@ def word_count(clean_text, stop_words):
                 word_count[word] += 1
     return word_count
 
-def score(sentences, word_count, sen_size):
+def score(sentences, word_count, sen_size, nb_sen):
     # create empty dictionary to house sentence score    
     sentence_score = {}
     # loop through tokenized sentence, only take sentences that have less than 30 words, then add word score to form sentence score
@@ -119,114 +134,29 @@ def score(sentences, word_count, sen_size):
                         sentence_score[sentence] = word_count[word]
                     else:
                         sentence_score[sentence] += word_count[word]
-    return sentence_score
-
-def nlargest(n, iterable, key=None):
-    """Find the n largest elements in a dataset.
-    Equivalent to:  sorted(iterable, key=key, reverse=True)[:n]
-    """
-
-    # Short-cut for n==1 is to use max()
-    if n == 1:
-        it = iter(iterable)
-        sentinel = object()
-        result = max(it, default=sentinel, key=key)
-        return [] if result is sentinel else [result]
-
-    # When n>=size, it's faster to use sorted()
-    try:
-        size = len(iterable)
-    except (TypeError, AttributeError):
-        pass
-    else:
-        if n >= size:
-            return sorted(iterable, key=key, reverse=True)[:n]
-
-    # When key is none, use simpler decoration
-    if key is None:
-        it = iter(iterable)
-        result = [(elem, i) for i, elem in zip(range(0, -n, -1), it)]
-        if not result:
-            return result
-        heapify(result)
-        top = result[0][0]
-        order = -n
-        _heapreplace = heapreplace
-        for elem in it:
-            if top < elem:
-                _heapreplace(result, (elem, order))
-                top, _order = result[0]
-                order -= 1
-        result.sort(reverse=True)
-        return [elem for (elem, order) in result]
-
-    # General case, slowest method
-    it = iter(iterable)
-    result = [(key(elem), i, elem) for i, elem in zip(range(0, -n, -1), it)]
-    if not result:
-        return result
-    heapify(result)
-    top = result[0][0]
-    order = -n
-    _heapreplace = heapreplace
-    for elem in it:
-        k = key(elem)
-        if top < k:
-            _heapreplace(result, (k, order, elem))
-            top, _order, _elem = result[0]
-            order -= 1
-    result.sort(reverse=True)
-    return [elem for (k, order, elem) in result]
-
-# If available, use C implementation
-try:
-    from _heapq import *
-except ImportError:
-    pass
-try:
-    from _heapq import _heapreplace_max
-except ImportError:
-    pass
-try:
-    from _heapq import _heapify_max
-except ImportError:
-    pass
-try:
-    from _heapq import _heappop_max
-except ImportError:
-    pass
-
-def summarize(sentences,sentence_score, nb_sen):
-    # display the best 3 sentences for summary             
-    best_sentences = nlargest(nb_sen, sentence_score, key=sentence_score.get)
-    # display top sentences based on their sentence sequence in the original text
-    best_sum = []
-    for sentence in sentences:
-        if sentence in best_sentences:
-            best_sum.append(sentence)
-    sum_txt = '\n'.join(best_sum)
-    return sum_txt
-            
-
+    df_sentence_score = pd.DataFrame.from_dict(sentence_score, orient = 'index').rename(columns={0: 'score'})
+    df_sentence_score = df_sentence_score.sort_values(by='score', ascending = False).reset_index()
+    summ = '      '.join(df_sentence_score.loc[0:nb_sen,'index'].to_list())
+    return summ
 
 def final(txt, stop_words, sen_size, nb_sen):
     text = clean_basic(txt)
     clean_text = clean_final(text, stop_words)
     sentences = tokenize(text)
     word_cnt = word_count(clean_text, stop_words)
-    sco = score(sentences, word_cnt, sen_size)
-    summ = summarize(sentences, sco, nb_sen)
+    summ = score(sentences, word_cnt, sen_size, nb_sen)
     return summ, clean_text, word_cnt
 
 
 ########## Visualisation ##########
 
-def wrd_cld(texte):
+def wrd_cld(texte, max):
     stylecloud.gen_stylecloud(text = texte,
                           icon_name='fas fa-file',
                           #palette='colorbrewer.diverging.Spectral_11',
                           background_color='white',
-                          gradient='horizontal'
+                          gradient='horizontal',
+                          max_words = max
                          ) 
 
 # helper function for plotting the top words.
