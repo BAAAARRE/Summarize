@@ -3,3 +3,4 @@ pandas
 plotly_express
 nltk
 stylecloud
+fr_core_news_md
