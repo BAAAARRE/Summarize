@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import string
+from newspaper import Article
 import plotly_express as px
 
 # spacy for lemmatization
@@ -28,8 +29,18 @@ def main():
     st.write("Vous n'avez pas le temps ou tout simplement la flemme de lire un texte ou un article? Cet algorithme vous permet de retenir l'essentiel d'un texte en un instant! Il vous affichera également un nuage de mot associé à votre texte. Ainsi que la fréquence des mots les plus récurrents! Vous pouvez modifier quelques paramètres, en deployant l'onglet sur votre gauche.")
    
     st.write('\n')
-    st.header('Insérez ici votre texte, puis appuyez sur Ctrl + Entrée')
-    user_input = st.text_area("", '')
+    st.header('Selectionner le type de fichier')
+    type_txt = st.radio('', ['URL', 'Texte manuel'])
+    st.write('\n')
+
+    if type_txt == 'Texte manuel':
+        st.header('Insérez ici votre texte, puis appuyez sur Ctrl + Entrée')
+        text = st.text_area("", '')
+    else:
+        st.header('Insérez ici votre url, puis appuyez sur Entrée')
+        user_input = st.text_input("", '')
+        if len(user_input) > 0:
+            text = scrap_url(user_input)
 
 # Sidebar
     st.sidebar.title('Résumé')
@@ -52,7 +63,8 @@ def main():
 
 
     if len(user_input) > 0:
-        summ, clean, word = final(user_input, stop_words, 30, nb_sent)
+
+        summ, clean, word = final(text, stop_words, 30, nb_sent)
 
         st.write('\n')
         st.header('Voici le résumé de votre texte :')
@@ -79,6 +91,15 @@ def main():
 
 
 
+########## Import des données ##########
+
+def scrap_url(user_url_input):
+    article = Article(user_url_input)
+    article.download()
+    article.parse()
+    txt = article.text
+    return txt
+
 ########## Nettoyage des données ##########
 
 @st.cache
@@ -92,16 +113,14 @@ def all_stopwords(filename, adds):
 def clean_basic(file_data):
     text = file_data
     # replace reference number with empty space, if any..
-    text = text.replace(r'\[[0-9]*\]'," ")  
+    text = text.replace(r'\[[0-9]*\]'," ")
     # replace one or more spaces with single space
     text = text.replace(r'\s+'," ") 
     return text
 
 def clean_final(text, stop_words):
-    # convert all uppercase characters into lowercase characters
     clean_text = text.lower()
-    # replace characters other than [a-zA-Z0-9], digits & one or more spaces with single space
-    punc = string.punctuation + '«»…’'
+    punc = string.punctuation + '«»“—”’'
     translator = str.maketrans(punc, ' '*len(punc)) #map punctuation to space
     clean_text = clean_text.translate(translator)
     clean_text = " ".join(clean_text.split())
@@ -153,7 +172,7 @@ def final(txt, stop_words, sen_size, nb_sen):
     clean_text = clean_final(text, stop_words)
     sentences = tokenize(text)
     word_cnt = word_count(clean_text, stop_words)
-    summ = score(sentences, word_cnt, sen_size, nb_sen)
+    summ = score(sentences, word_cnt, sen_size, nb_sen-1)
     return summ, clean_text, word_cnt
 
 
