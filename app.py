@@ -30,7 +30,7 @@ def main():
    
     st.write('\n')
     st.header('Selectionner le type de fichier')
-    type_txt = st.radio('', ['URL', 'Texte manuel'])
+    type_txt = st.radio('', ['Texte manuel', 'URL'])
     st.write('\n')
 
     if type_txt == 'Texte manuel':
@@ -69,6 +69,7 @@ def main():
         st.write('\n')
         st.header('Voici le résumé de votre texte :')
         st.write(summ)
+        #st.write(text)
 
         st.write('\n')
         st.header('Voici le nuage de mots de votre texte :')
@@ -180,7 +181,7 @@ def final(txt, stop_words, sen_size, nb_sen):
 
 def wrd_cld(texte, max):
     stylecloud.gen_stylecloud(text = texte,
-                          icon_name='fas fa-file',
+                          icon_name='fas fa-medkit',
                           #palette='colorbrewer.diverging.Spectral_11',
                           background_color='white',
                           gradient='horizontal',
