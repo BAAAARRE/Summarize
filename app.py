@@ -62,7 +62,7 @@ def main():
         stop_words = stop_words_en
 
 
-    if len(user_input) > 0:
+    if len(text) > 0:
 
         summ, clean, word = final(text, stop_words, 30, nb_sent)
 
